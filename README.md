@@ -1,2 +1,2 @@
 # vuehook
-webhook for discord
+sends funny webhook joke to discord
