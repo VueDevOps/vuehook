@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>VueSearch</title>
+
+<style>
+/* ----------------------------------------------------
+   VUESEARCH — GLOBAL DARK MODE THEME
+---------------------------------------------------- */
+:root {
+  --bg:#020617;
+  --bg-elevated:#0f172a;
+  --text:#e2e8f0;
+  --muted:#94a3b8;
+  --border:#1f2937;
+  --accent:#3b82f6;
+  --accent-hover:#2563eb;
+  --divider:#111827;
+  --progress-bg:#020617;
+  --progress-fill:#3b82f6;
+  --progress-fill-complete:#22c55e;
+}
+
+* { box-sizing:border-box; }
+
+html, body {
+  margin:0;
+  padding:0;
+  height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.app-root { height:100vh; display:flex; flex-direction:column; }
+
+/* ----------------------------------------------------
+   HEADER
+---------------------------------------------------- */
+.app-header {
+  padding:10px 16px;
+  border-bottom:1px solid var(--border);
+  background:#020617;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.app-title {
+  font-size:1rem;
+  font-weight:600;
+  color:var(--text);
+}
+
+.app-status {
+  font-size:0.8rem;
+  color:var(--muted);
+}
+
+/* ----------------------------------------------------
+   MAIN LAYOUT: SIDEBAR | DIVIDER | PREVIEW
+---------------------------------------------------- */
+.app-main {
+  flex:1;
+  display:flex;
+  min-height:0;
+}
+
+/* ----------------------------------------------------
+   SIDEBAR
+---------------------------------------------------- */
+.sidebar {
+  width:32%;
+  min-width:240px;
+  max-width:60%;
+  background:var(--bg-elevated);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+}
+
+.sidebar-header {
+  padding:12px 14px;
+  border-bottom:1px solid var(--border);
+}
+
+.brand-title {
+  font-size:0.85rem;
+  font-weight:600;
+  margin-bottom:8px;
+  color:var(--text);
+}
+
+.btn {
+  padding:6px 10px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:#020617;
+  color:var(--text);
+  font-size:0.85rem;
+  cursor:pointer;
+}
+
+.btn-primary {
+  border-color:var(--accent);
+  background:var(--accent);
+  color:#fff;
+}
+
+.btn-primary:hover {
+  background:var(--accent-hover);
+}
+
+.btn:disabled {
+  opacity:0.5;
+  cursor:default;
+}
+
+.sidebar-folder {
+  margin-top:6px;
+  font-size:0.8rem;
+  color:var(--muted);
+}
+
+.form-control {
+  width:100%;
+  padding:6px 8px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:#020617;
+  color:var(--text);
+  font-size:0.85rem;
+}
+
+.form-control::placeholder { color:var(--muted); }
+
+.search-box { margin-top:10px; }
+.file-count { margin-left:8px; }
+
+/* ----------------------------------------------------
+   PROGRESS BAR (STYLE C)
+---------------------------------------------------- */
+.progress-wrapper {
+  padding:10px 14px 6px;
+  border-bottom:1px solid #0b1120;
+  display:none;
+  opacity:1;
+  transition:opacity 0.4s ease;
+}
+
+.progress-label {
+  font-size:0.75rem;
+  color:var(--muted);
+  margin-bottom:4px;
+}
+
+.progress-bar-outer {
+  width:100%;
+  height:7px;
+  border-radius:999px;
+  background:var(--progress-bg);
+  border:1px solid var(--border);
+  overflow:hidden;
+}
+
+.progress-bar-inner {
+  height:100%;
+  width:0%;
+  border-radius:999px;
+  background:var(--progress-fill);
+  transition:width 0.12s linear;
+}
+
+.progress-bar-inner.complete {
+  background:var(--progress-fill-complete);
+}
+
+/* ----------------------------------------------------
+   RESULTS LIST
+---------------------------------------------------- */
+.results-list { flex:1; overflow-y:auto; }
+
+.result-item {
+  padding:12px 16px;
+  border-bottom:1px solid #0b1120;
+  cursor:pointer;
+}
+
+.result-item:hover {
+  background:#020617;
+}
+
+.result-item.selected {
+  background:#111827;
+}
+
+.result-title {
+  font-weight:500;
+  margin-bottom:4px;
+}
+
+.result-snippet {
+  font-size:0.75rem;
+  color:var(--muted);
+}
+
+.result-meta {
+  font-size:0.7rem;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+/* Highlight color */
+mark {
+  background:rgba(245,158,11,0.25);
+  color:#fbbf24;
+  padding:0 2px;
+  border-radius:3px;
+}
+
+/* ----------------------------------------------------
+   DRAGGABLE DIVIDER
+---------------------------------------------------- */
+.divider {
+  width:4px;
+  cursor:col-resize;
+  background:var(--divider);
+}
+
+.divider:hover { background:#1f2937; }
+
+/* ----------------------------------------------------
+   PREVIEW PANE
+---------------------------------------------------- */
+.preview-pane {
+  flex:1;
+  background:var(--bg-elevated);
+  display:flex;
+  flex-direction:column;
+}
+
+.preview-header {
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  font-size:0.85rem;
+  color:var(--muted);
+}
+
+.preview-filename {
+  font-size:0.9rem;
+  font-weight:600;
+  color:var(--text);
+}
+
+.preview-body {
+  flex:1;
+  padding:10px 14px;
+}
+
+.preview-frame {
+  width:100%;
+  height:100%;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#020617;
+}
+</style>
+</head>
+
+<body>
+<div class="app-root">
+  <div class="app-header">
+    <div class="app-title">📂 VueSearch</div>
+    <div class="app-status" id="statusTop">Idle</div>
+  </div>
+
+  <div class="app-main">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-title">VueSearch — Local PDF Search</div>
+
+        <button class="btn btn-primary" id="btnPickFolder">📁 Select Folder</button>
+        <div class="sidebar-folder" id="folderName">No folder selected</div>
+
+        <div class="search-box">
+          <input id="searchBox" class="form-control" placeholder="Search text..." />
+        </div>
+
+        <div style="display:flex; align-items:center; margin-top:8px; gap:8px;">
+          <button class="btn btn-primary" id="btnSearch" disabled>🔍 Search</button>
+          <span class="result-meta" id="fileCount">0 PDFs</span>
+        </div>
+      </div>
+
+      <!-- PROGRESS BAR -->
+      <div class="progress-wrapper" id="progressWrapper">
+        <div class="progress-label" id="progressLabel">Searching PDFs... 0%</div>
+        <div class="progress-bar-outer">
+          <div class="progress-bar-inner" id="progressBarInner"></div>
+        </div>
+      </div>
+
+      <div class="results-list" id="results"></div>
+    </div>
+
+    <!-- DIVIDER -->
+    <div class="divider" id="divider"></div>
+
+    <!-- PREVIEW PANEL -->
+    <div class="preview-pane">
+      <div class="preview-header">
+        <div>
+          <div class="preview-filename" id="previewTitle">VueSearch — no document selected</div>
+          <div class="result-meta" id="previewInfo">Choose a folder, search, then click a file.</div>
+        </div>
+      </div>
+
+      <div class="preview-body">
+        <iframe id="previewFrame" class="preview-frame"></iframe>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PDF.js via jsDelivr CDN -->
+<script type="module">
+/* ----------------------------------------------------
+   IMPORT PDF.JS
+---------------------------------------------------- */
+import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.2.67/build/pdf.min.mjs";
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.2.67/build/pdf.worker.min.mjs";
+
+/* ----------------------------------------------------
+   STATE
+---------------------------------------------------- */
+let pdfFiles = [];
+let selectedFolder = null;
+let currentPreviewUrl = null;
+
+/* ----------------------------------------------------
+   ELEMENTS
+---------------------------------------------------- */
+const sidebar       = document.getElementById("sidebar");
+const divider       = document.getElementById("divider");
+const resultsEl     = document.getElementById("results");
+const statusTop     = document.getElementById("statusTop");
+const folderNameEl  = document.getElementById("folderName");
+const fileCountEl   = document.getElementById("fileCount");
+const previewTitle  = document.getElementById("previewTitle");
+const previewInfo   = document.getElementById("previewInfo");
+const previewFrame  = document.getElementById("previewFrame");
+const progressWrap  = document.getElementById("progressWrapper");
+const progressLabel = document.getElementById("progressLabel");
+const progressBar   = document.getElementById("progressBarInner");
+
+/* ----------------------------------------------------
+   DRAGGABLE DIVIDER
+---------------------------------------------------- */
+let dragging = false;
+let startX = 0;
+let startSidebarWidth = 0;
+
+divider.addEventListener("mousedown", (e) => {
+  dragging = true;
+  startX = e.clientX;
+  startSidebarWidth = sidebar.getBoundingClientRect().width;
+  document.body.style.userSelect = "none";
+});
+
+window.addEventListener("mousemove", (e) => {
+  if (!dragging) return;
+  const dx = e.clientX - startX;
+  let newWidth = startSidebarWidth + dx;
+
+  const min = 220;
+  const max = window.innerWidth * 0.6;
+
+  if (newWidth < min) newWidth = min;
+  if (newWidth > max) newWidth = max;
+
+  sidebar.style.width = newWidth + "px";
+});
+
+window.addEventListener("mouseup", () => {
+  dragging = false;
+  document.body.style.userSelect = "";
+});
+
+/* ----------------------------------------------------
+   UTILS
+---------------------------------------------------- */
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function highlightSnippet(text, query) {
+  if (!query) return escapeHtml(text);
+  const escape = escapeHtml(text);
+  const q = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(q, "gi");
+  return escape.replace(regex, m => `<mark>${m}</mark>`);
+}
+
+function hideProgressBarAfterDelay() {
+  setTimeout(() => {
+    progressWrap.style.opacity = "0";
+    setTimeout(() => {
+      progressWrap.style.display = "none";
+      progressWrap.style.opacity = "1";
+    }, 400);
+  }, 2500);
+}
+
+/* ----------------------------------------------------
+   FOLDER PICKER
+---------------------------------------------------- */
+document.getElementById("btnPickFolder").onclick = async () => {
+  try {
+    selectedFolder = await window.showDirectoryPicker();
+    pdfFiles = [];
+    resultsEl.innerHTML = "";
+    previewTitle.textContent = "VueSearch — no document selected";
+    previewInfo.textContent  = "Choose a folder, search, then click a file.";
+
+    if (currentPreviewUrl) {
+      URL.revokeObjectURL(currentPreviewUrl);
+      currentPreviewUrl = null;
+      previewFrame.src = "";
+    }
+
+    progressWrap.style.display = "none";
+    progressBar.style.width = "0%";
+
+    statusTop.textContent = "Scanning folder...";
+    folderNameEl.textContent = "Selected: " + selectedFolder.name;
+
+    await scanFolder(selectedFolder);
+
+    fileCountEl.textContent = pdfFiles.length + " PDFs";
+    document.getElementById("btnSearch").disabled = (pdfFiles.length === 0);
+
+    statusTop.textContent = `VueSearch ready — ${pdfFiles.length} PDFs found.`;
+  } catch {
+    statusTop.textContent = "Folder selection cancelled.";
+  }
+};
+
+async function scanFolder(dir, path = "") {
+  for await (const entry of dir.values()) {
+    const full = path + "/" + entry.name;
+    if (entry.kind === "directory") {
+      await scanFolder(entry, full);
+    } else if (entry.kind === "file" && entry.name.toLowerCase().endsWith(".pdf")) {
+      pdfFiles.push({ handle: entry, path: full, text: null });
+    }
+  }
+}
+
+/* ----------------------------------------------------
+   PDF TEXT EXTRACTION
+---------------------------------------------------- */
+async function extractPdfText(handle) {
+  const file = await handle.getFile();
+  const buffer = await file.arrayBuffer();
+
+  const task = pdfjsLib.getDocument({ data: buffer });
+  const pdf = await task.promise;
+
+  let str = "";
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    str += content.items.map(x => x.str).join(" ") + "\n";
+  }
+  return str;
+}
+
+/* ----------------------------------------------------
+   PREVIEW PANEL
+---------------------------------------------------- */
+async function showPreview(pdf) {
+  try {
+    if (currentPreviewUrl) URL.revokeObjectURL(currentPreviewUrl);
+
+    const f = await pdf.handle.getFile();
+    const url = URL.createObjectURL(f);
+    currentPreviewUrl = url;
+
+    previewFrame.src = url;
+    previewTitle.textContent = pdf.path;
+    previewInfo.textContent  = "Previewing file in VueSearch";
+  } catch(e) {
+    previewTitle.textContent = "Unable to preview";
+    previewInfo.textContent  = e.message;
+    previewFrame.src = "";
+  }
+}
+
+/* ----------------------------------------------------
+   SEARCH
+---------------------------------------------------- */
+document.getElementById("btnSearch").onclick = runSearch;
+document.getElementById("searchBox").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") runSearch();
+});
+
+async function runSearch() {
+  const q = document.getElementById("searchBox").value.trim();
+  if (!q) return;
+  const qLower = q.toLowerCase();
+
+  resultsEl.innerHTML = "";
+  progressWrap.style.display = "block";
+  progressBar.style.width = "0%";
+  progressBar.classList.remove("complete");
+  progressLabel.textContent = "Searching PDFs... 0%";
+  statusTop.textContent = "VueSearch searching...";
+
+  let found = 0;
+  let processed = 0;
+  const total = pdfFiles.length || 1;
+
+  for (const pdf of pdfFiles) {
+    if (!pdf.text) {
+      try {
+        pdf.text = await extractPdfText(pdf.handle);
+      } catch {
+        processed++;
+        updateProgress(processed, total);
+        continue;
+      }
+    }
+
+    const lower = pdf.text.toLowerCase();
+    const idx = lower.indexOf(qLower);
+
+    if (idx !== -1) {
+      found++;
+
+      const radius = 80;
+      const start  = Math.max(0, idx - radius);
+      const end    = Math.min(pdf.text.length, idx + q.length + radius);
+      const snippet = pdf.text.slice(start, end);
+
+      const item = document.createElement("div");
+      item.className = "result-item";
+      item.innerHTML =
+        `<div class="result-title">${escapeHtml(pdf.path)}</div>
+         <div class="result-snippet">... ${highlightSnippet(snippet, q)} ...</div>
+         <div class="result-meta">Click to preview</div>`;
+
+      item.onclick = () => {
+        [...resultsEl.children].forEach(c => c.classList.remove("selected"));
+        item.classList.add("selected");
+        showPreview(pdf);
+      };
+
+      resultsEl.appendChild(item);
+    }
+
+    processed++;
+    updateProgress(processed, total);
+  }
+
+  // finalize
+  progressBar.classList.add("complete");
+  progressLabel.textContent = `Done. Found ${found} matching PDF(s).`;
+  statusTop.textContent = `VueSearch found ${found} matching PDF(s).`;
+
+  hideProgressBarAfterDelay();
+}
+
+function updateProgress(processed, total) {
+  const percent = Math.round((processed / total) * 100);
+  progressBar.style.width = percent + "%";
+  progressLabel.textContent = `Searching PDFs... ${percent}%`;
+}
+</script>
+
+</body>
+</html>
